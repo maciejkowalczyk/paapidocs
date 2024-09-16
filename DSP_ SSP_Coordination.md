@@ -163,19 +163,52 @@ OpenRTB Core BidRequest.imp = {
    // group auction may ultimately decide the winning ad.
    // The seller sets this. Example, the publisher intends to enable IG, but the seller (SSP)
    // has not onboarded this buyer for IG auctions. This value should not be filled out by the publisher.
+   // Default value of this field is boolean given in text form, but numeric boolean values (0, 1) are also supported.
    // DEFAULT=true
 
-   "bid": true,
+   "biddable": true,
    "ext": {...}  
    }
 }
 ```
 
+Optionally we support also "ae" and "biddable" fields given in alternative sections of imp object. Like in imp -> ext -> igs
+With is currently standard from  [official IAB specification](https://github.com/InteractiveAdvertisingBureau/openrtb/blob/main/extensions/community_extensions/Protected%20Audience%20Support.md).
 
+
+Example below:
+
+```
+OpenRTB Core BidRequest.imp = {
+	...
+	"ext": {
+		"igs": {
+			"ae": 1,
+			"biddable": true
+		}
+	}  
+}
+```
+
+Another supported version of sending "ae" feature is creating "ae" field directly in imp -> ext.
+
+
+Example below:
+
+```
+OpenRTB Core BidRequest.imp = {
+	...
+	"ext": {
+		...
+		"ae": 1,
+		...
+	}  
+}
+```
 
 #### Bid Response
 
-**Please note, the standard is taking shape. Fields could change names over time if consensus is reached. **
+**Please note, the standard is taking shape. Fields could change names over time if consensus is reached.**
 
 Bidders will respond to a PA API-eligible impression with:
 
@@ -197,7 +230,7 @@ OpenRTB BidResponse = {
    // one or more InterestGroupAuction.Response objects
    // Provided if the buyer is signaling participation in potential interest group auction(s)
    // Defined in Interest Group Auctions specification, see section #.## 
-   "igb": [ 
+   "igi": [ 
    {
        // ID of ad slot represented by the corresponding Imp object in the bid
 	// request to link information to be used in the interest group auction to
@@ -205,12 +238,12 @@ OpenRTB BidResponse = {
 	"impid": "1",
 
 	// array of buyer-level information to use in the interest group auction.
-	"b": [{   	 
+	"igb": [{   	 
         	// Required
         	// Origin of the interest group buyer to participate in the
         	// in-browser auction.
         	// See https://developer.mozilla.org/en-US/docs/Glossary/Origin
-        	"o": "https://ads.dsp.com",
+        	"origin": "https://ads.dsp.com",
         	// Indicates the currency in which interest group bids will be placed.
         	// Value must be a three digit ISO 4217 alpha currency code (e.g. "USD").
         	"cur": "USD",
@@ -222,14 +255,14 @@ OpenRTB BidResponse = {
         	// `perBuyerSignals` attribute map, keyed by the interest group buyer
               // origin.
         	// Value may be any valid JSON serializable value.
-        	"bs" = ...,
+        	"pbs" = ...,
 
         	// Optional
         	// Buyer priority signals.
         	// If specified, seller will add to its auction config
         	// `perBuyerPrioritySignals` attribute map, keyed by the interest group buyer origin.
-        	"ps": {...}
-
+        	"ps": {...},
+            "ext": {...}  
   	}]
 }]
 }
@@ -278,6 +311,24 @@ RTB House currently does not have expectations to receive specific, nonstandard 
 ## PA on-device scoring data: DSP -> SSP
 
 RTB House currently prefers unified, single currency - USD. We plan on following emerging standard, where the contextual response will inform both the Seller and Buyer’s bidding function of the currency - see [Bid Response sample](#bid-response-1)
+
+As a result of a bidding function RTB House also returns an ad object with informations specific to the returned bid, eg:
+```
+{
+    "bid": 1,
+    "render": "https://f.creativecdn.com/creatives?id=BcZKHkT4MAlkP8W1GbNn&c=kQKZEgHd2MX0GUG9VHAS&s=rtbhfledge",
+    "ad": {
+        "adomain": ["example.com"],
+        "cid": "kQKZEgHd2MX0GUG9VHAS",
+        "crid": "BcZKHkT4MAlkP8W1GbNn_kQKZEgHd2MX0GUG9VHAS",
+        "w": 300,
+        "h": 250
+    },
+    "adComponents": ["https://f.creativecdn.com/creatives?id=OdjHedJd8uDClBSou5rp&c=kQKZEgHd2MX0GUG9VHAS&_oi=2258342499549171292&s=rtbhfledge",  ...],
+    "bidCurrency": "USD",
+    (...)
+}
+```
 
 
 ## PA API win reporting
